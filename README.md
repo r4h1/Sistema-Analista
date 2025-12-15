@@ -1,212 +1,107 @@
-Sistema de Diagnóstico Inteligente para Monitoramento Elétrico e Manutenção Preditiva
+# ⚡ Sistema de Diagnóstico Inteligente (S.I.A.D.E.)
 
-Este repositório contém o código-fonte do Sistema de Diagnóstico Inteligente (SDI) desenvolvido como Trabalho de Conclusão de Curso (TCC).
-O sistema tem como objetivo o monitoramento de variáveis elétricas, registro de eventos, atuação automatizada sobre cargas e análise preditiva de falhas, utilizando tecnologias de IoT, banco de dados local e Inteligência Artificial.
+![Status](https://img.shields.io/badge/Status-Concluído-success)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Platform](https://img.shields.io/badge/Plataforma-Raspberry%20Pi%20%7C%20ESP32-red)
+![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-lightgrey)
 
-📐 Arquitetura Geral do Sistema
+> **TCC - Engenharia Elétrica - Universidade Católica de Petrópolis (2025)**
+> *Monitoramento Elétrico, Automação e Manutenção Preditiva via IoT e IA.*
 
-O sistema foi projetado com uma arquitetura distribuída e modular, composta por três camadas principais:
+---
 
-Camada de Aquisição e Atuação (ESP32)
+## 📖 Sobre o Projeto
 
-Camada de Servidor Central (Raspberry Pi)
+Este repositório contém a arquitetura de software do **Sistema de Diagnóstico Inteligente**, desenvolvido para monitorar variáveis elétricas, registrar eventos, atuar automaticamente sobre cargas e realizar análises preditivas de falhas.
 
-Camada de Interface e Consulta (Analista)
+O diferencial do sistema é sua arquitetura híbrida (Online/Offline), utilizando protocolo MQTT para comunicação leve e Inteligência Artificial rodando localmente para antecipar problemas antes que eles ocorram.
 
-A comunicação entre os módulos ocorre predominantemente via MQTT, garantindo baixo consumo de rede e funcionamento em ambientes com conectividade limitada.
+---
 
-🔌 ESP32 #1 — Aquisição de Dados Elétricos
+## 📐 Arquitetura do Sistema
 
-O ESP32 #1 é responsável pela leitura contínua das variáveis elétricas, incluindo:
+O sistema opera de forma distribuída em três camadas principais:
 
-Tensão (V)
+1.  **Camada de Aquisição e Atuação:** Microcontroladores ESP32.
+2.  **Camada de Servidor Central:** Raspberry Pi (Broker, Banco de Dados e IA).
+3.  **Camada de Interface:** Software "Analista" (Comando de Voz e Dashboards).
 
-Corrente (A)
+<img width="387" height="248" alt="image" src="https://github.com/user-attachments/assets/8f3997c9-48de-45a1-8bc6-854e48885ccd" />
 
-Temperatura (°C)
+---
 
-Funções principais:
+## 🛠️ Módulos do Sistema
 
-Aquisição periódica dos sensores
+### 🔌 1. ESP32 #1 — Aquisição de Dados
+Responsável pela leitura contínua ("Sensing Node") e envio via MQTT.
+* **Sensores:** Tensão (ZMPT101B), Corrente (SCT-013), Temperatura.
+* **Protocolo:** MQTT (JSON).
+* **Função:** Coleta dados brutos e envia para o servidor a cada 2 segundos.
 
-Publicação dos dados via MQTT
+### 🔧 2. ESP32 #2 — Atuação
+Responsável pela proteção e controle ("Actuator Node").
+* **Hardware:** Módulo de 8 Relés.
+* **Função:** Recebe comandos de desligamento (automático via IA ou manual via usuário) e registra logs de atuação.
 
-Envio das leituras para armazenamento no servidor central
+### 🖥️ 3. Raspberry Pi — O Cérebro
+Atua como servidor central local (*Edge Computing*).
+* **Broker MQTT:** Mosquitto.
+* **Banco de Dados:** SQLite (`dados_sensores.db`).
+* **IA:** Executa o modelo de predição em tempo real.
 
-Dados armazenados:
+### 🤖 4. "O Analista" — Interface Inteligente
+Software desktop para interação homem-máquina.
+* **Comandos de Voz:** "Qual a tensão média?", "Gerar gráfico".
+* **Tecnologias:** `SpeechRecognition`, `gTTS`, `Matplotlib`.
+* **Saída:** Áudio e Gráficos gerados automaticamente na pasta compartilhada.
 
-Os dados são enviados ao Raspberry Pi, que os insere na tabela historico_dados do banco SQLite, contendo:
+---
 
-Timestamp
+## 📊 Inteligência Artificial (Camada Preditiva)
 
-Identificação do sensor
+O sistema utiliza um modelo de Machine Learning (**Random Forest Classifier**) treinado para detectar tendências de anomalia (ex: queda gradual de tensão) antes da falha crítica.
 
-Tipo de dado
+<img width="679" height="405" alt="image" src="https://github.com/user-attachments/assets/9ea29b4d-c9fa-4241-930e-cdaa66068b8e" />
 
-Valor medido
+> **⚠️ Nota sobre Propriedade Intelectual:**
+> Este repositório contém os scripts de treinamento e lógica de inferência para fins acadêmicos. O **dataset original** (14.000 registros) e o arquivo do modelo treinado (`.pkl`) **não estão incluídos** para proteção de propriedade intelectual e desenvolvimento comercial futuro.
 
-🔧 ESP32 #2 — Atuação e Registro de Eventos
+---
 
-O ESP32 #2 é responsável pela atuação sobre cargas elétricas, utilizando um módulo de 8 relés.
+## ▶️ Como Executar
 
-Funções principais:
+Siga os passos abaixo para configurar o ambiente e rodar o sistema.
 
-Recebimento de comandos via MQTT
+### 1. Preparação do Ambiente (Banco de Dados e Dependências)
 
-Acionamento e desligamento de relés
+Execute os comandos abaixo no terminal para criar a estrutura do banco de dados e instalar as bibliotecas necessárias:
 
-Geração de logs de eventos do sistema
+# --- NO RASPBERRY PI (SERVIDOR) ---
 
-Logs gerados:
+# 1. Gerar estrutura do banco de dados (sem dados prévios)
+python criar_banco.py
 
-Os eventos são registrados no banco de dados do Raspberry Pi na tabela logs_eventos, incluindo:
+# 2. Instalar Broker MQTT e ferramentas de sistema
+sudo apt install mosquitto mosquitto-clients
 
-Timestamp
+# 3. Instalar bibliotecas Python do Servidor
+pip install paho-mqtt pandas scikit-learn joblib
 
-Tipo de evento (ex: atuação automática)
+# --- NO NOTEBOOK (INTERFACE ANALISTA) ---
 
-Descrição textual
+# 4. Instalar bibliotecas Python da Interface
+pip install SpeechRecognition gTTS pydub pygame matplotlib
 
-⚠️ Não são gerados gráficos para o ESP32 #2, pois sua função é exclusivamente atuar e registrar eventos.
+### 2. Ordem de Execução
+Iniciar o Servidor: No Raspberry Pi, execute os scripts de recepção de dados e IA.
 
-🖥️ Raspberry Pi — Servidor Central
+Conectar Hardware: Ligue os ESP32 (eles se conectarão automaticamente ao Wi-Fi e ao Broker MQTT).
 
-O Raspberry Pi atua como núcleo do sistema, desempenhando os seguintes papéis:
+Iniciar Interface: No notebook, rode o assistente:
 
-Funções principais:
+python analista_voz.py
 
-Broker MQTT (Mosquitto)
+📜 Licença e Autoria
+Autor: Robson da Cruz Augusto Orientador: Prof. Felipe de Oliveira Baldner
 
-Armazenamento local dos dados (SQLite)
-
-Compartilhamento de arquivos via rede (Samba)
-
-Execução da camada de análise preditiva
-
-Banco de Dados
-
-SQLite
-
-Arquivo: dados_sensores.db
-
-Tabelas principais:
-
-historico_dados
-
-logs_eventos
-
-O uso de SQLite garante simplicidade, baixo consumo de recursos e independência de servidores externos.
-
-🤖 Analista — Interface Inteligente de Consulta
-
-O Analista é um assistente executado no notebook do usuário, responsável por:
-
-Consultas ao banco de dados do Raspberry Pi
-
-Geração de gráficos automáticos (PNG)
-
-Interação por comandos de voz ou texto
-
-Respostas em linguagem natural
-
-Tecnologias utilizadas:
-
-SpeechRecognition (voz online)
-
-gTTS + pydub + pygame (síntese de fala)
-
-SQLite (consultas remotas)
-
-Matplotlib (geração de gráficos)
-
-Exemplos de comandos:
-
-Analista tensão média última hora
-
-Analista gerar gráfico de tensão
-
-Analista eventos
-
-Analista atuação do sistema
-
-Os gráficos são salvos automaticamente na pasta compartilhada do Raspberry Pi.
-
-📊 Camada Preditiva (Inteligência Artificial)
-
-O sistema implementa uma camada de manutenção preditiva, utilizando:
-
-Random Forest Classifier
-
-Biblioteca Scikit-learn
-
-Objetivo:
-
-Detectar tendências de falha a partir do comportamento estatístico da tensão elétrica ao longo do tempo.
-
-Processo:
-
-Extração de janelas temporais
-
-Cálculo de features estatísticas:
-
-Média
-
-Desvio padrão
-
-Mínimo
-
-Máximo
-
-Inclinação (tendência)
-
-Classificação do estado do sistema:
-
-Normal
-
-Alerta Preditivo
-
-O modelo treinado é salvo em arquivo .pkl e pode ser integrado ao sistema principal.
-
-▶️ Como Executar (Resumo)
-Raspberry Pi
-sudo apt update
-sudo apt install mosquitto mosquitto-clients python3-pip
-pip install sqlite3 pandas scikit-learn joblib
-
-
-Iniciar o broker MQTT
-
-Executar o script de recepção e armazenamento de dados
-
-(Opcional) Executar o simulador de dados
-
-Notebook (Analista)
-pip install speechrecognition gtts pydub pygame matplotlib
-
-
-Ajustar o caminho do banco de dados compartilhado
-
-Executar o script do Analista
-
-Utilizar comandos de voz ou texto
-
-📂 Organização do Repositório (Sugestão)
-├── esp32_1_aquisicao/
-├── esp32_2_reles/
-├── raspberry_servidor/
-├── analista/
-├── machine_learning/
-├── docs/
-└── README.md
-
-📌 Observações Importantes
-
-O sistema foi testado em ambiente controlado com dados simulados e reais.
-
-A arquitetura permite funcionamento offline, sem dependência de nuvem.
-
-O projeto foi desenvolvido com foco acadêmico e didático.
-
-📜 Licença
-
-"All Rights Reserved" (Todos os direitos reservados).
+Copyright © 2025. Todos os direitos reservados. O código deste repositório é disponibilizado para fins de avaliação acadêmica. A reprodução comercial ou uso do dataset/modelo proprietário sem autorização é proibida.
