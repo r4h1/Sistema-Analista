@@ -209,5 +209,4 @@ O projeto foi desenvolvido com foco acadêmico e didático.
 
 📜 Licença
 
-Este projeto é de uso acadêmico e educacional.
-Sinta-se livre para estudar, adaptar e evoluir a solução.
+"All Rights Reserved" (Todos os direitos reservados).
